@@ -1,6 +1,7 @@
-## NEXT
+## 2.7.0
 
 * Aligns Dart and Flutter SDK constraints.
+* Adds `getMedia` method for picking both videos and images simultaneously.
 
 ## 2.6.3
 

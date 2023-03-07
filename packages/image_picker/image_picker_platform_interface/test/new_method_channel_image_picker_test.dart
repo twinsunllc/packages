@@ -1522,6 +1522,154 @@ void main() {
         );
       });
     });
+
+    group('#getMedia', () {
+      test('calls the method correctly', () async {
+        returnValue = '0';
+        await picker.getMedia();
+
+        expect(
+          log,
+          <Matcher>[
+            isMethodCall('pickMedia', arguments: <String, dynamic>{
+              'maxImageWidth': null,
+              'maxImageHeight': null,
+              'imageQuality': null,
+              'allowMultiple': false,
+              'types': <String>[
+                'image',
+                'video',
+              ],
+            }),
+          ],
+        );
+      });
+      
+      test('passes the selection options correctly', () async {
+        // Default options
+        await picker.getMedia();
+        // Various image options
+        returnValue = '0';
+        await picker.getMedia(
+          options: MediaSelectionOptions(
+            imageAdjustmentOptions: const ImageAdjustmentOptions(
+              maxWidth: 10.0,
+            ),
+          ),
+        );
+        await picker.getMedia(
+          options: MediaSelectionOptions(
+            imageAdjustmentOptions: const ImageAdjustmentOptions(
+              maxHeight: 10.0,
+            ),
+          ),
+        );
+        await picker.getMedia(
+          options: MediaSelectionOptions(
+            imageAdjustmentOptions: const ImageAdjustmentOptions(
+              quality: 70,
+            ),
+          ),
+        );
+        // General options
+        returnValue = <String>['0', '1'];
+        await picker.getMedia(
+          options: MediaSelectionOptions(
+            allowMultiple: true,
+          ),
+        );
+        returnValue = '0';
+        await picker.getMedia(
+          options: MediaSelectionOptions(types: <MediaSelectionType>[MediaSelectionType.image]),
+        );
+        // Combinations
+        returnValue = <String>['0', '1'];
+        await picker.getMedia(
+          options: MediaSelectionOptions(
+              imageAdjustmentOptions: const ImageAdjustmentOptions(
+                maxWidth: 10.0,
+                maxHeight: 20.0,
+                quality: 70,
+              ),
+              allowMultiple: true,
+              types: <MediaSelectionType>[MediaSelectionType.video]),
+        );
+
+        expect(
+          log,
+          <Matcher>[
+            isMethodCall('pickMedia', arguments: <String, dynamic>{
+              'maxImageWidth': null,
+              'maxImageHeight': null,
+              'imageQuality': null,
+              'allowMultiple': false,
+              'types': <String>[
+                'image',
+                'video',
+              ],
+            }),
+            isMethodCall('pickMedia', arguments: <String, dynamic>{
+              'maxImageWidth': 10.0,
+              'maxImageHeight': null,
+              'imageQuality': null,
+              'allowMultiple': false,
+              'types': <String>[
+                'image',
+                'video',
+              ],
+            }),
+            isMethodCall('pickMedia', arguments: <String, dynamic>{
+              'maxImageWidth': null,
+              'maxImageHeight': 10.0,
+              'imageQuality': null,
+              'allowMultiple': false,
+              'types': <String>[
+                'image',
+                'video',
+              ],
+            }),
+            isMethodCall('pickMedia', arguments: <String, dynamic>{
+              'maxImageWidth': null,
+              'maxImageHeight': null,
+              'imageQuality': 70,
+              'allowMultiple': false,
+              'types': <String>[
+                'image',
+                'video',
+              ],
+            }),
+            isMethodCall('pickMedia', arguments: <String, dynamic>{
+              'maxImageWidth': null,
+              'maxImageHeight': null,
+              'imageQuality': null,
+              'allowMultiple': true,
+              'types': <String>[
+                'image',
+                'video',
+              ],
+            }),
+            isMethodCall('pickMedia', arguments: <String, dynamic>{
+              'maxImageWidth': null,
+              'maxImageHeight': null,
+              'imageQuality': null,
+              'allowMultiple': false,
+              'types': <String>[
+                'image',
+              ],
+            }),
+            isMethodCall('pickMedia', arguments: <String, dynamic>{
+              'maxImageWidth': 10.0,
+              'maxImageHeight': 20.0,
+              'imageQuality': 70,
+              'allowMultiple': true,
+              'types': <String>[
+                'video',
+              ],
+            }),
+          ],
+        );
+      });
+    });
   });
 }
 
