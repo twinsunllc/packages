@@ -81,7 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _onImageButtonPressed(ImageSource source,
-      {BuildContext? context, bool isMultiImage = false}) async {
+      {BuildContext? context, bool isMultiImage = false, bool isMultiType = false}) async {
     if (_controller != null) {
       await _controller!.setVolume(0.0);
     }
@@ -89,6 +89,30 @@ class _MyHomePageState extends State<MyHomePage> {
       final XFile? file = await _picker.getVideo(
           source: source, maxDuration: const Duration(seconds: 10));
       await _playVideo(file);
+    } else if (isMultiType) {
+      await _displayPickImageDialog(context!, (double? maxWidth, double? maxHeight, int? quality) async {
+        try {
+          final List<XFile> pickedFileList =
+              await _picker.getMedia(
+            options: MediaSelectionOptions(
+              allowMultiple: isMultiImage,
+              imageAdjustmentOptions: ImageAdjustmentOptions(
+                maxWidth: maxWidth,
+                maxHeight: maxHeight,
+                quality: quality,
+              ),
+            ),
+          );
+          setState(() {
+            _imageFileList = pickedFileList;
+          });
+        } catch (e) {
+          setState(() {
+            _pickImageError = e;
+          });
+        }
+      });
+    
     } else if (isMultiImage) {
       await _displayPickImageDialog(context!,
           (double? maxWidth, double? maxHeight, int? quality) async {
@@ -192,11 +216,18 @@ class _MyHomePageState extends State<MyHomePage> {
           itemBuilder: (BuildContext context, int index) {
             // Why network for web?
             // See https://pub.dev/packages/image_picker#getting-ready-for-the-web-platform
+            
             return Semantics(
               label: 'image_picker_example_picked_image',
-              child: kIsWeb
-                  ? Image.network(_imageFileList![index].path)
-                  : Image.file(File(_imageFileList![index].path)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('mimeType: ${_imageFileList![index].mimeType}'),
+                  kIsWeb
+                      ? Image.network(_imageFileList![index].path)
+                      : Image.file(File(_imageFileList![index].path)),
+                ],
+              ),
             );
           },
           itemCount: _imageFileList!.length,
@@ -255,6 +286,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 _onImageButtonPressed(
                   ImageSource.gallery,
                   context: context,
+                  isMultiType: true,
                   isMultiImage: true,
                 );
               },

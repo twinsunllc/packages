@@ -297,12 +297,12 @@ class ImagePickerIOS extends ImagePickerPlatform {
   }
 
   @override
-  Future<List<XFile>?> getMedia({
+  Future<List<XFile>> getMedia({
     MediaSelectionOptions? options,
   }) async {
     final List<String>? paths = await _pickMediaAsPath(options: options);
     if (paths == null) {
-      return null;
+      return <XFile>[];
     }
 
     return paths.map((String path) => XFile(path)).toList();

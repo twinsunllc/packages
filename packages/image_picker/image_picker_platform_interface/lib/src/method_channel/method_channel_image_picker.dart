@@ -253,7 +253,7 @@ class MethodChannelImagePicker extends ImagePickerPlatform {
   }
 
   @override
-  Future<List<XFile>?> getMedia({
+  Future<List<XFile>> getMedia({
     MediaSelectionOptions? options,
   }) async {
     options ??= MediaSelectionOptions();
@@ -296,7 +296,11 @@ class MethodChannelImagePicker extends ImagePickerPlatform {
           .then((String? path) => path != null ? <String>[path] : null);
     }
 
-    return paths?.map((String path) => XFile(path)).toList();
+    if (paths == null) {
+      return <XFile>[];
+    }
+
+    return paths.map((String path) => XFile(path)).toList();
   }
 
   @override

@@ -27,16 +27,16 @@ API_AVAILABLE(ios(14))
 }
 
 - (instancetype)initWithResult:(PHPickerResult *)result
-                     maxHeight:(NSNumber *)maxImageHeight
-                      maxWidth:(NSNumber *)maxImageWidth
+                maxImageHeight:(NSNumber *)maxImageHeight
+                 maxImageWidth:(NSNumber *)maxImageWidth
            desiredImageQuality:(NSNumber *)desiredImageQuality
                   fullMetadata:(BOOL)fullMetadata
                 savedPathBlock:(FLTGetSavedPath)savedPathBlock API_AVAILABLE(ios(14)) {
   if (self = [super init]) {
     if (result) {
       self.result = result;
-      self.maxHeight = maxHeight;
-      self.maxWidth = maxWidth;
+      self.maxImageHeight = maxImageHeight;
+      self.maxImageWidth = maxImageWidth;
       self.desiredImageQuality = desiredImageQuality;
       self.requestFullMetadata = fullMetadata;
       getSavedPath = savedPathBlock;
@@ -180,8 +180,8 @@ API_AVAILABLE(ios(14))
     NSString *savedPath =
         [FLTImagePickerPhotoAssetUtil saveImageWithOriginalImageData:pickerImageData
                                                                image:localImage
-                                                            maxWidth:self.maxWidth
-                                                           maxHeight:self.maxHeight
+                                                            maxWidth:self.maxImageWidth
+                                                           maxHeight:self.maxImageHeight
                                                         imageQuality:self.desiredImageQuality];
     [self completeOperationWithPath:savedPath error:nil];
   }
@@ -217,7 +217,7 @@ API_AVAILABLE(ios(14))
                                     }
                                   }
                                 }
-                                [self completeOperationWithPath:[destination path]];
+                                [self completeOperationWithPath:[destination path] error:nil];
                               }
                             }];
 }

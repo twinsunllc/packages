@@ -231,7 +231,7 @@ abstract class ImagePickerPlatform extends PlatformInterface {
   /// call [getLostData] when your app relaunches to retrieve the lost data.
   ///
   /// If no images or videos were picked, the return value is null.
-  Future<List<XFile>?> getMedia({
+  Future<List<XFile>> getMedia({
     MediaSelectionOptions? options,
   }) {
     throw UnimplementedError('getMedia() has not been implemented.');
