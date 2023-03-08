@@ -59,6 +59,8 @@ class ImagePickerCache {
       setType("image");
     } else if (methodCallName.equals(ImagePickerPlugin.METHOD_CALL_VIDEO)) {
       setType("video");
+    } else if (methodCallName.equals(ImagePickerPlugin.METHOD_CALL_MEDIA)) {
+      setType("media");
     }
   }
 

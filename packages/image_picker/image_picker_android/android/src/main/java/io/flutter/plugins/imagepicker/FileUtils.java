@@ -38,6 +38,12 @@ import java.io.OutputStream;
 import java.util.UUID;
 
 class FileUtils {
+
+  String getMimeFromUri(final Context context, final Uri uri) {
+    ContentResolver contentResolver = context.getContentResolver();
+    return contentResolver.getType(uri);
+  }
+
   /**
    * Copies the file from the given content URI to a temporary directory, retaining the original
    * file name if possible.

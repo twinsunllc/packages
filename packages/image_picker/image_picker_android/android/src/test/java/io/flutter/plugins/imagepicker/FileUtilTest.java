@@ -5,10 +5,14 @@
 package io.flutter.plugins.imagepicker;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -80,6 +84,17 @@ public class FileUtilTest {
         uri, new ByteArrayInputStream("imageStream".getBytes(UTF_8)));
     String path = fileUtils.getPathFromUri(context, uri);
     assertTrue(path.endsWith("dummy.png"));
+  }
+
+  @Test
+  public void FileUtil_getMimeFromUri() {
+    Context mockContext = mock(Context.class);
+    ContentResolver mockContentResolver = mock(ContentResolver.class);
+    when(mockContext.getContentResolver()).thenReturn(mockContentResolver);
+    Uri uri = Uri.parse("content://dummy/dummy.png");
+    when(mockContentResolver.getType(uri)).thenReturn("image/png");
+    String mime = fileUtils.getMimeFromUri(mockContext, uri);
+    assertEquals("image/png", mime);
   }
 
   private static class MockContentProvider extends ContentProvider {

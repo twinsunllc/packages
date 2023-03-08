@@ -1,6 +1,7 @@
-## NEXT
+## 0.8.6
 
 * Aligns Dart and Flutter SDK constraints.
+* Adds support for `getMedia`.
 
 ## 0.8.5+9
 
