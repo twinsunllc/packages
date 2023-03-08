@@ -9,11 +9,11 @@
 @import UniformTypeIdentifiers;
 @import XCTest;
 
-@interface PickerSaveImageToPathOperationTests : XCTestCase
+@interface PickerSaveItemToPathOperationTests : XCTestCase
 
 @end
 
-@implementation PickerSaveImageToPathOperationTests
+@implementation PickerSaveItemToPathOperationTests
 
 - (void)testSaveWebPImage API_AVAILABLE(ios(14)) {
   NSURL *imageURL = [[NSBundle bundleForClass:[self class]] URLForResource:@"webpImage"
@@ -21,7 +21,7 @@
   NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:imageURL];
   PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
 
-  [self verifySavingImageWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
+  [self verifySavingItemWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
 }
 
 - (void)testSavePNGImage API_AVAILABLE(ios(14)) {
@@ -30,7 +30,7 @@
   NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:imageURL];
   PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
 
-  [self verifySavingImageWithPickerResult:result fullMetadata:YES withExtension:@"png"];
+  [self verifySavingItemWithPickerResult:result fullMetadata:YES withExtension:@"png"];
 }
 
 - (void)testSaveJPGImage API_AVAILABLE(ios(14)) {
@@ -39,7 +39,7 @@
   NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:imageURL];
   PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
 
-  [self verifySavingImageWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
+  [self verifySavingItemWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
 }
 
 - (void)testSaveGIFImage API_AVAILABLE(ios(14)) {
@@ -56,7 +56,7 @@
   XCTestExpectation *operationExpectation =
       [self expectationWithDescription:@"Operation completed"];
 
-  FLTPHPickerSaveImageToPathOperation *operation = [[FLTPHPickerSaveImageToPathOperation alloc]
+  FLTPHPickerSaveItemToPathOperation *operation = [[FLTPHPickerSaveItemToPathOperation alloc]
            initWithResult:result
                 maxHeight:@100
                  maxWidth:@100
@@ -89,7 +89,7 @@
   NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:imageURL];
   PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
 
-  [self verifySavingImageWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
+  [self verifySavingItemWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
 }
 
 - (void)testSaveHEICImage API_AVAILABLE(ios(14)) {
@@ -98,7 +98,26 @@
   NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:imageURL];
   PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
 
-  [self verifySavingImageWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
+  [self verifySavingItemWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
+}
+
+- (void)testSaveMP4Video API_AVAILABLE(ios(14)) {
+  NSURL *videoURL = [[NSBundle bundleForClass:[self class]] URLForResource:@"mp4Video"
+                                                             withExtension:@"mp4"];
+  NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:videoURL];
+  PHPickerResult *result = [self createPickerResultWithProvider:itemProvider
+                                                 withIdentifier:UTTypeMPEG4Movie.identifier];
+
+  [self verifySavingItemWithPickerResult:result];
+}
+
+- (void)testSaveMOVVideo API_AVAILABLE(ios(14)) {
+  NSURL *videoURL = [[NSBundle bundleForClass:[self class]] URLForResource:@"movVideo"
+                                                             withExtension:@"mov"];
+  NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:videoURL];
+  PHPickerResult *result = [self createPickerResultWithProvider:itemProvider
+                                                 withIdentifier:UTTypeQuickTimeMovie.identifier];
+  [self verifySavingItemWithPickerResult:result];
 }
 
 - (void)testSaveWithOrientation API_AVAILABLE(ios(14)) {
@@ -112,7 +131,7 @@
   XCTestExpectation *operationExpectation =
       [self expectationWithDescription:@"Operation completed"];
 
-  FLTPHPickerSaveImageToPathOperation *operation = [[FLTPHPickerSaveImageToPathOperation alloc]
+  FLTPHPickerSaveItemToPathOperation *operation = [[FLTPHPickerSaveItemToPathOperation alloc]
            initWithResult:result
                 maxHeight:@10
                  maxWidth:@10
@@ -144,7 +163,7 @@
   NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:imageURL];
   PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
 
-  [self verifySavingImageWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
+  [self verifySavingItemWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
 }
 
 - (void)testSaveICOImage API_AVAILABLE(ios(14)) {
@@ -153,7 +172,7 @@
   NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:imageURL];
   PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
 
-  [self verifySavingImageWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
+  [self verifySavingItemWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
 }
 
 - (void)testSaveProRAWImage API_AVAILABLE(ios(14)) {
@@ -162,7 +181,7 @@
   NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:imageURL];
   PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
 
-  [self verifySavingImageWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
+  [self verifySavingItemWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
 }
 
 - (void)testSaveSVGImage API_AVAILABLE(ios(14)) {
@@ -171,7 +190,7 @@
   NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:imageURL];
   PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
 
-  [self verifySavingImageWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
+  [self verifySavingItemWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
 }
 
 - (void)testSaveTIFFImage API_AVAILABLE(ios(14)) {
@@ -179,7 +198,7 @@
                                                              withExtension:@"tiff"];
   NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:imageURL];
   PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
-  [self verifySavingImageWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
+  [self verifySavingItemWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
 }
 
 - (void)testNonexistentImage API_AVAILABLE(ios(14)) {
@@ -189,7 +208,7 @@
   PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
 
   XCTestExpectation *errorExpectation = [self expectationWithDescription:@"invalid source error"];
-  FLTPHPickerSaveImageToPathOperation *operation = [[FLTPHPickerSaveImageToPathOperation alloc]
+  FLTPHPickerSaveItemToPathOperation *operation = [[FLTPHPickerSaveItemToPathOperation alloc]
            initWithResult:result
                 maxHeight:@100
                  maxWidth:@100
@@ -219,7 +238,7 @@
 
   XCTestExpectation *errorExpectation = [self expectationWithDescription:@"invalid image error"];
 
-  FLTPHPickerSaveImageToPathOperation *operation = [[FLTPHPickerSaveImageToPathOperation alloc]
+  FLTPHPickerSaveItemToPathOperation *operation = [[FLTPHPickerSaveItemToPathOperation alloc]
            initWithResult:pickerResult
                 maxHeight:@100
                  maxWidth:@100
@@ -245,7 +264,7 @@
   PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
   OCMReject([photoAssetUtil fetchAssetsWithLocalIdentifiers:OCMOCK_ANY options:OCMOCK_ANY]);
 
-  [self verifySavingImageWithPickerResult:result fullMetadata:NO withExtension:@"png"];
+  [self verifySavingItemWithPickerResult:result fullMetadata:NO withExtension:@"png"];
   OCMVerifyAll(photoAssetUtil);
 }
 
@@ -265,24 +284,24 @@
 }
 
 /**
- * Validates a saving process of FLTPHPickerSaveImageToPathOperation.
+ * Validates a saving process of FLTPHPickerSaveItemToPathOperation.
  *
- * FLTPHPickerSaveImageToPathOperation is responsible for saving a picked image to the disk for
+ * FLTPHPickerSaveItemToPathOperation is responsible for saving a picked item to the disk for
  * later use. It is expected that the saving is always successful.
  *
  * @param result the picker result
  */
-- (void)verifySavingImageWithPickerResult:(PHPickerResult *)result
+- (void)verifySavingItemWithPickerResult:(PHPickerResult *)result
                              fullMetadata:(BOOL)fullMetadata
                             withExtension:(NSString *)extension API_AVAILABLE(ios(14)) {
   XCTestExpectation *pathExpectation = [self expectationWithDescription:@"Path was created"];
   XCTestExpectation *operationExpectation =
       [self expectationWithDescription:@"Operation completed"];
 
-  FLTPHPickerSaveImageToPathOperation *operation = [[FLTPHPickerSaveImageToPathOperation alloc]
+  FLTPHPickerSaveItemToPathOperation *operation = [[FLTPHPickerSaveItemToPathOperation alloc]
            initWithResult:result
-                maxHeight:@100
-                 maxWidth:@100
+           maxImageHeight:@100
+            maxImageWidth:@100
       desiredImageQuality:@100
              fullMetadata:fullMetadata
            savedPathBlock:^(NSString *savedPath, FlutterError *error) {

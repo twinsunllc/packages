@@ -41,6 +41,18 @@ SourceCamera _convertCamera(CameraDevice camera) {
   throw UnimplementedError('Unknown camera: $camera');
 }
 
+// Converts a [MediaSelectionType] to the corresponding Pigeon API enum value.
+IOSMediaSelectionTypeData _convertMediaSelectionType(MediaSelectionType type) {
+  switch (type) {
+    case MediaSelectionType.image:
+      return IOSMediaSelectionTypeData(value: IOSMediaSelectionType.image);
+    case MediaSelectionType.video:
+      return IOSMediaSelectionTypeData(value: IOSMediaSelectionType.video);
+    default:
+      throw UnimplementedError('Unknown type: $type');
+  }
+}
+
 /// An implementation of [ImagePickerPlatform] for iOS.
 class ImagePickerIOS extends ImagePickerPlatform {
   final ImagePickerApi _hostApi = ImagePickerApi();
@@ -141,6 +153,33 @@ class ImagePickerIOS extends ImagePickerPlatform {
             MaxSize(width: maxWidth, height: maxHeight),
             imageQuality,
             options.imageOptions.requestFullMetadata))
+        ?.cast<String>();
+  }
+
+  Future<List<String>?> _pickMediaAsPath({
+    MediaSelectionOptions? options,
+  }) async {
+    options ??= MediaSelectionOptions();
+    final int? imageQuality = options.imageAdjustmentOptions.quality;
+    if (imageQuality != null && (imageQuality < 0 || imageQuality > 100)) {
+      throw ArgumentError.value(imageQuality, 'imageQuality', 'must be between 0 and 100');
+    }
+
+    final double? maxImageWidth = options.imageAdjustmentOptions.maxWidth;
+    if (maxImageWidth != null && maxImageWidth < 0) {
+      throw ArgumentError.value(maxImageWidth, 'maxImageWidth', 'cannot be negative');
+    }
+
+    final double? maxImageHeight = options.imageAdjustmentOptions.maxHeight;
+    if (maxImageHeight != null && maxImageHeight < 0) {
+      throw ArgumentError.value(maxImageHeight, 'maxImageHeight', 'cannot be negative');
+    }
+
+    final List<IOSMediaSelectionTypeData> types = options.types.map(_convertMediaSelectionType).toList();
+
+    // TODO(stuartmorgan): Remove the cast once Pigeon supports non-nullable
+    // generics, https://github.com/flutter/flutter/issues/97848
+    return (await _hostApi.pickMedia(MaxSize(width: maxImageWidth, height: maxImageHeight), imageQuality, options.allowMultiple, types))
         ?.cast<String>();
   }
 
@@ -255,5 +294,17 @@ class ImagePickerIOS extends ImagePickerPlatform {
       preferredCameraDevice: preferredCameraDevice,
     );
     return path != null ? XFile(path) : null;
+  }
+
+  @override
+  Future<List<XFile>?> getMedia({
+    MediaSelectionOptions? options,
+  }) async {
+    final List<String>? paths = await _pickMediaAsPath(options: options);
+    if (paths == null) {
+      return null;
+    }
+
+    return paths.map((String path) => XFile(path)).toList();
   }
 }

@@ -5,30 +5,30 @@
 #import <Flutter/Flutter.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-#import "FLTPHPickerSaveImageToPathOperation.h"
+#import "FLTPHPickerSaveItemToPathOperation.h"
 
 #import <os/log.h>
 
 API_AVAILABLE(ios(14))
-@interface FLTPHPickerSaveImageToPathOperation ()
+@interface FLTPHPickerSaveItemToPathOperation ()
 
 @property(strong, nonatomic) PHPickerResult *result;
-@property(strong, nonatomic) NSNumber *maxHeight;
-@property(strong, nonatomic) NSNumber *maxWidth;
+@property(strong, nonatomic) NSNumber *maxImageHeight;
+@property(strong, nonatomic) NSNumber *maxImageWidth;
 @property(strong, nonatomic) NSNumber *desiredImageQuality;
 @property(assign, nonatomic) BOOL requestFullMetadata;
 
 @end
 
-@implementation FLTPHPickerSaveImageToPathOperation {
+@implementation FLTPHPickerSaveItemToPathOperation {
   BOOL executing;
   BOOL finished;
   FLTGetSavedPath getSavedPath;
 }
 
 - (instancetype)initWithResult:(PHPickerResult *)result
-                     maxHeight:(NSNumber *)maxHeight
-                      maxWidth:(NSNumber *)maxWidth
+                     maxHeight:(NSNumber *)maxImageHeight
+                      maxWidth:(NSNumber *)maxImageWidth
            desiredImageQuality:(NSNumber *)desiredImageQuality
                   fullMetadata:(BOOL)fullMetadata
                 savedPathBlock:(FLTGetSavedPath)savedPathBlock API_AVAILABLE(ios(14)) {
@@ -89,10 +89,13 @@ API_AVAILABLE(ios(14))
   if (@available(iOS 14, *)) {
     [self setExecuting:YES];
 
+    if ([self.result.itemProvider hasItemConformingToTypeIdentifier:UTTypeMovie.identifier]) {
+      [self processVideo];
+
     // This supports uniform types that conform to UTTypeImage.
     // This includes UTTypeHEIC, UTTypeHEIF, UTTypeLivePhoto, UTTypeICO, UTTypeICNS, UTTypePNG
     // UTTypeGIF, UTTypeJPEG, UTTypeWebP, UTTypeTIFF, UTTypeBMP, UTTypeSVG, UTTypeRAWImage
-    if ([self.result.itemProvider hasItemConformingToTypeIdentifier:UTTypeImage.identifier]) {
+    } else if ([self.result.itemProvider hasItemConformingToTypeIdentifier:UTTypeImage.identifier]) {
       [self.result.itemProvider
           loadDataRepresentationForTypeIdentifier:UTTypeImage.identifier
                                 completionHandler:^(NSData *_Nullable data,
@@ -131,21 +134,21 @@ API_AVAILABLE(ios(14))
     originalAsset = [FLTImagePickerPhotoAssetUtil getAssetFromPHPickerResult:self.result];
   }
 
-  if (self.maxWidth != nil || self.maxHeight != nil) {
+  if (self.maxImageWidth != nil || self.maxImageHeight != nil) {
     localImage = [FLTImagePickerImageUtil scaledImage:localImage
-                                             maxWidth:self.maxWidth
-                                            maxHeight:self.maxHeight
+                                             maxWidth:self.maxImageWidth
+                                            maxHeight:self.maxImageHeight
                                   isMetadataAvailable:YES];
   }
   if (originalAsset) {
     void (^resultHandler)(NSData *imageData, NSString *dataUTI, NSDictionary *info) =
         ^(NSData *_Nullable imageData, NSString *_Nullable dataUTI, NSDictionary *_Nullable info) {
-          // maxWidth and maxHeight are used only for GIF images.
+          // maxImageWidth and maxHeight are used only for GIF images.
           NSString *savedPath = [FLTImagePickerPhotoAssetUtil
               saveImageWithOriginalImageData:imageData
                                        image:localImage
-                                    maxWidth:self.maxWidth
-                                   maxHeight:self.maxHeight
+                                    maxWidth:self.maxImageWidth
+                                   maxHeight:self.maxImageHeight
                                 imageQuality:self.desiredImageQuality];
           [self completeOperationWithPath:savedPath error:nil];
         };
@@ -183,5 +186,41 @@ API_AVAILABLE(ios(14))
     [self completeOperationWithPath:savedPath error:nil];
   }
 }
+
+/**
+ * Processes the video.
+ */
+- (void)processVideo API_AVAILABLE(ios(14)) {
+  NSString *typeIdentifier = self.result.itemProvider.registeredTypeIdentifiers.firstObject;
+  [self.result.itemProvider
+      loadFileRepresentationForTypeIdentifier:typeIdentifier
+                            completionHandler:^(NSURL *_Nullable videoURL,
+                                                NSError *_Nullable error) {
+                              if (videoURL == nil) {
+                                return;
+                              }
+                              NSString *fileName = [videoURL lastPathComponent];
+                              NSURL *destination = [NSURL
+                                  fileURLWithPath:[NSTemporaryDirectory()
+                                                      stringByAppendingPathComponent:fileName]];
+
+                              if ([[NSFileManager defaultManager]
+                                      isReadableFileAtPath:[videoURL path]]) {
+                                NSError *error;
+                                if (![[videoURL path] isEqualToString:[destination path]]) {
+                                  [[NSFileManager defaultManager] copyItemAtURL:videoURL
+                                                                          toURL:destination
+                                                                          error:&error];
+                                  if (error) {
+                                    if (error.code != NSFileWriteFileExistsError) {
+                                      return;
+                                    }
+                                  }
+                                }
+                                [self completeOperationWithPath:[destination path]];
+                              }
+                            }];
+}
+
 
 @end

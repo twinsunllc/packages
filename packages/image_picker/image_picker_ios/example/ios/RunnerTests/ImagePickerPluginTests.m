@@ -9,6 +9,7 @@
 @import UniformTypeIdentifiers;
 @import XCTest;
 
+#import <MobileCoreServices/MobileCoreServices.h>
 #import <OCMock/OCMock.h>
 
 @interface MockViewController : UIViewController
@@ -217,6 +218,33 @@
   OCMVerify(times(0), [photoLibrary authorizationStatus]);
 }
 
+- (void)testPickMediaShouldUseUIImagePickerControllerOnPreiOS14 {
+  if (@available(iOS 14, *)) {
+    return;
+  }
+
+  id mockUIImagePicker = OCMClassMock([UIImagePickerController class]);
+  id photoLibrary = OCMClassMock([PHPhotoLibrary class]);
+  OCMStub(ClassMethod([photoLibrary authorizationStatus]))
+      .andReturn(PHAuthorizationStatusAuthorized);
+
+  FLTImagePickerPlugin *plugin = [FLTImagePickerPlugin new];
+  [plugin setImagePickerControllerOverrides:@[ mockUIImagePicker ]];
+
+  [plugin
+      pickMediaWithMaxSize:[FLTMaxSize makeWithWidth:@(100) height:@(200)]
+                   quality:@(50)
+             allowMultiple:@YES
+              allowedTypes:@[
+                [FLTIOSMediaSelectionTypeData makeWithValue:FLTIOSMediaSelectionTypeImage],
+                [FLTIOSMediaSelectionTypeData makeWithValue:FLTIOSMediaSelectionTypeVideo]
+              ]
+                completion:^(NSArray<NSString *> *_Nullable result, FlutterError *_Nullable error){
+                }];
+  OCMVerify(times(1),
+            [mockUIImagePicker setSourceType:UIImagePickerControllerSourceTypePhotoLibrary]);
+}
+
 #pragma mark - Test camera devices, no op on simulators
 
 - (void)testPluginPickImageDeviceCancelClickMultipleTimes {
@@ -266,6 +294,84 @@
 
   FLTImagePickerPlugin *plugin = [[FLTImagePickerPlugin alloc] init];
   XCTAssertEqual([plugin viewControllerWithWindow:window], vc2);
+}
+
+- (void)testPickingMediaWithAllowedTypes {
+  if (@available(iOS 14, *)) {
+    FLTImagePickerPlugin *plugin = [FLTImagePickerPlugin new];
+
+    [plugin pickMediaWithMaxSize:[FLTMaxSize makeWithWidth:@(100) height:@(200)]
+                         quality:@(50)
+                   allowMultiple:@YES
+                    allowedTypes:@[
+                      [FLTIOSMediaSelectionTypeData makeWithValue:FLTIOSMediaSelectionTypeVideo],
+                    ]
+                      completion:^(NSArray<NSString *> *_Nullable result,
+                                   FlutterError *_Nullable error){
+                      }];
+
+    XCTAssertEqualObjects(
+        [[[plugin pickerViewController] configuration] filter],
+        [PHPickerFilter anyFilterMatchingSubfilters:@[ [PHPickerFilter videosFilter] ]]);
+  }
+}
+
+- (void)testPickingMediaWithAllowedTypesPreIOS14 {
+  if (@available(iOS 14, *)) {
+    return;
+  }
+  FLTImagePickerPlugin *plugin = [FLTImagePickerPlugin new];
+  UIImagePickerController *controller = [[UIImagePickerController alloc] init];
+  [plugin setImagePickerControllerOverrides:@[ controller ]];
+
+  [plugin
+      pickMediaWithMaxSize:[FLTMaxSize makeWithWidth:@(100) height:@(200)]
+                   quality:@(50)
+             allowMultiple:@YES
+              allowedTypes:@[
+                [FLTIOSMediaSelectionTypeData makeWithValue:FLTIOSMediaSelectionTypeVideo],
+              ]
+                completion:^(NSArray<NSString *> *_Nullable result, FlutterError *_Nullable error){
+                }];
+
+  XCTAssertFalse([controller.mediaTypes containsObject:(NSString *)kUTTypeImage]);
+  XCTAssertTrue([controller.mediaTypes containsObject:(NSString *)kUTTypeMovie]);
+}
+
+- (void)testPickingMediaWithSingleSelectionLimit {
+  if (@available(iOS 14, *)) {
+    FLTImagePickerPlugin *plugin = [FLTImagePickerPlugin new];
+
+    [plugin pickMediaWithMaxSize:[FLTMaxSize makeWithWidth:@(100) height:@(200)]
+                         quality:@(50)
+                   allowMultiple:@NO
+                    allowedTypes:@[
+                      [FLTIOSMediaSelectionTypeData makeWithValue:FLTIOSMediaSelectionTypeVideo],
+                    ]
+                      completion:^(NSArray<NSString *> *_Nullable result,
+                                   FlutterError *_Nullable error){
+                      }];
+
+    XCTAssertEqual([[[plugin pickerViewController] configuration] selectionLimit], 1);
+  }
+}
+
+- (void)testPickingMediaWithNoSelectionLimit {
+  if (@available(iOS 14, *)) {
+    FLTImagePickerPlugin *plugin = [FLTImagePickerPlugin new];
+
+    [plugin pickMediaWithMaxSize:[FLTMaxSize makeWithWidth:@(100) height:@(200)]
+                         quality:@(50)
+                   allowMultiple:@YES
+                    allowedTypes:@[
+                      [FLTIOSMediaSelectionTypeData makeWithValue:FLTIOSMediaSelectionTypeVideo],
+                    ]
+                      completion:^(NSArray<NSString *> *_Nullable result,
+                                   FlutterError *_Nullable error){
+                      }];
+
+    XCTAssertEqual([[[plugin pickerViewController] configuration] selectionLimit], 0);
+  }
 }
 
 - (void)testPluginMultiImagePathHasNullItem {

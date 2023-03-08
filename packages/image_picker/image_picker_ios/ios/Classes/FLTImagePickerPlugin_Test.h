@@ -43,6 +43,8 @@ typedef void (^FlutterResultAdapter)(NSArray<NSString *> *_Nullable, FlutterErro
  */
 @property(nonatomic, strong, nullable) NSNumber *imageQuality;
 
+@property(nonatomic, strong, nullable) NSArray<NSNumber *> *allowedTypes;
+
 /** Maximum number of images to select. 0 indicates no maximum. */
 @property(nonatomic, assign) int maxImageCount;
 

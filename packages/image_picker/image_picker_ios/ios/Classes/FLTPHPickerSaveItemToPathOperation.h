@@ -15,9 +15,9 @@ NS_ASSUME_NONNULL_BEGIN
 typedef void (^FLTGetSavedPath)(NSString *_Nullable savedPath, FlutterError *_Nullable error);
 
 /*!
- @class FLTPHPickerSaveImageToPathOperation
+ @class FLTPHPickerSaveItemToPathOperation
 
- @brief The FLTPHPickerSaveImageToPathOperation class
+ @brief The FLTPHPickerSaveItemToPathOperation class
 
  @discussion    This class was implemented to handle saved image paths and populate the pathList
  with the final result by using GetSavedPath type block.
@@ -25,11 +25,11 @@ typedef void (^FLTGetSavedPath)(NSString *_Nullable savedPath, FlutterError *_Nu
  @superclass SuperClass: NSOperation\n
  @helps It helps FLTImagePickerPlugin class.
  */
-@interface FLTPHPickerSaveImageToPathOperation : NSOperation
+@interface FLTPHPickerSaveItemToPathOperation : NSOperation
 
 - (instancetype)initWithResult:(PHPickerResult *)result
-                     maxHeight:(NSNumber *)maxHeight
-                      maxWidth:(NSNumber *)maxWidth
+                maxImageHeight:(NSNumber *)maxHeight
+                 maxImageWidth:(NSNumber *)maxWidth
            desiredImageQuality:(NSNumber *)desiredImageQuality
                   fullMetadata:(BOOL)fullMetadata
                 savedPathBlock:(FLTGetSavedPath)savedPathBlock API_AVAILABLE(ios(14));
