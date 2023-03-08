@@ -22,6 +22,9 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_plugin_android_lifecycle: ^2.0.1
+  image_picker_platform_interface: ^2.6.5
+
+dependency_overrides:
   image_picker_platform_interface:
     path: ../image_picker_platform_interface
 

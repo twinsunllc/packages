@@ -19,6 +19,9 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
+  image_picker_platform_interface: ^2.6.5
+
+dependency_overrides:
   image_picker_platform_interface:
     path: ../image_picker_platform_interface
 
