@@ -31,9 +31,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import android.util.Log;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Arrays;
+
 
 /**
  * A delegate class doing the heavy lifting for the plugin.
@@ -344,7 +347,7 @@ public class ImagePickerDelegate
       return;
     }
 
-    launchPickFromGalleryIntent(new String[] {"image/*"}, false);
+    launchPickFromGalleryIntent(new String[] {"image/*"}, true);
   }
 
   public void chooseMediaFromGallery(MethodCall methodCall, MethodChannel.Result result) {
@@ -355,6 +358,7 @@ public class ImagePickerDelegate
 
     Boolean allowMultiple = methodCall.argument("allowMultiple");
     if (allowMultiple == null) allowMultiple = false;
+    Log.d("ImagePickerDelegate", "allowMultiple: " + (allowMultiple ? "true" : "false"));
 
     List<String> types = methodCall.argument("types");
     Set<String> mimeTypes = new HashSet<>();
@@ -378,18 +382,62 @@ public class ImagePickerDelegate
     if (mimeTypes == null) {
       mimeTypes = new String[] {"*/*"};
     }
-    Intent pickImageIntent = new Intent(Intent.ACTION_GET_CONTENT);
-    if (multiple && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      pickImageIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-    }
+
+    List<String> mimeTypesList = Arrays.asList(mimeTypes);
+
+    Intent pickMediaIntent;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-      pickImageIntent.setType("*/*");
-      pickImageIntent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+      Log.d("ImagePickerDelegate", "SDK_INT >= KITKAT");
+      PickVisualMediaRequest.Builder builder = new PickVisualMediaRequest.Builder();
+      if (mimeTypesList.contains("*/*") || (mimeTypesList.contains("image/*") && mimeTypesList.contains("video/*"))) {
+        Log.d("ImagePickerDelegate", "mediaType: imageAndVideo");
+        builder.setMediaType(ActivityResultContracts.PickVisualMedia.ImageAndVideo.INSTANCE);
+      } else if (mimeTypesList.contains("image/*")) {
+        Log.d("ImagePickerDelegate", "mediaType: imageOnly");
+        builder.setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE);
+      } else if (mimeTypesList.contains("video/*")) {
+        Log.d("ImagePickerDelegate", "mediaType: videoOnly");
+        builder.setMediaType(ActivityResultContracts.PickVisualMedia.VideoOnly.INSTANCE);
+      } else {
+        Log.d("ImagePickerDelegate", "mediaType: imageAndVideo - fallback for mime types: " + mimeTypesList.toString());
+        builder.setMediaType(ActivityResultContracts.PickVisualMedia.ImageAndVideo.INSTANCE);
+      }
+      if (multiple) {
+        Log.d("ImagePickerDelegate", "PickMultipleVisualMedia");
+        pickMediaIntent =
+            new ActivityResultContracts.PickMultipleVisualMedia()
+                .createIntent(
+                    activity,
+                    builder.build());
+      } else {
+        Log.d("ImagePickerDelegate", "PickVisualMedia");
+        pickMediaIntent = new ActivityResultContracts.PickVisualMedia().createIntent(activity, builder.build());
+      }
     } else {
-      pickImageIntent.setType(TextUtils.join(" ", mimeTypes));
+      Log.d("ImagePickerDelegate", "SDK_INT < KITKAT");
+      pickMediaIntent = new Intent(Intent.ACTION_GET_CONTENT);
+      if (mimeTypesList.contains("*/*") || (mimeTypesList.contains("image/*") && mimeTypesList.contains("video/*"))) {
+        Log.d("ImagePickerDelegate", "setType: */*");
+        pickMediaIntent.setType("*/*");
+      } else if (mimeTypesList.contains("image/*")) {
+        Log.d("ImagePickerDelegate", "setType: image/*");
+        pickMediaIntent.setType("image/*");
+      } else if (mimeTypesList.contains("video/*")) {
+        Log.d("ImagePickerDelegate", "setType: video/*");
+        pickMediaIntent.setType("video/*");
+      } else {
+        Log.d("ImagePickerDelegate", "setType: */* - fallback for mime types: " + mimeTypesList.toString());
+        pickMediaIntent.setType("*/*");
+      }
+
+      if (multiple && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        Log.d("ImagePickerDelegate", "set EXTRA_ALLOW_MULTIPLE: true");
+        pickMediaIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+      }
     }
+
     activity.startActivityForResult(
-        pickImageIntent,
+        pickMediaIntent,
         multiple ? REQUEST_CODE_CHOOSE_MULTI_FROM_GALLERY : REQUEST_CODE_CHOOSE_FROM_GALLERY);
   }
 
@@ -604,7 +652,7 @@ public class ImagePickerDelegate
         }
         paths.add(path);
       }
-      finishWithListSUccess(paths, false);
+      finishWithListSuccess(paths);
       return;
     }
 

@@ -14,6 +14,7 @@ export 'package:image_picker_platform_interface/image_picker_platform_interface.
         CameraDevice,
         LostData,
         LostDataResponse,
+        MediaSelectionOptions,
         PickedFile,
         XFile,
         RetrieveType;
@@ -332,6 +333,12 @@ class ImagePicker {
       preferredCameraDevice: preferredCameraDevice,
       maxDuration: maxDuration,
     );
+  }
+
+  Future<List<XFile>> pickMedia({
+    MediaSelectionOptions? options,
+  }) {
+    return platform.getMedia(options: options);
   }
 
   /// Retrieve the lost [XFile] when [pickImage], [pickMultiImage] or [pickVideo] failed because the MainActivity

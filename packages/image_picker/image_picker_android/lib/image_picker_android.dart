@@ -87,6 +87,37 @@ class ImagePickerAndroid extends ImagePickerPlatform {
     );
   }
 
+  Future<List<dynamic>?> _pickMediaAsPath({
+    MediaSelectionOptions? options,
+  }) async {
+    options ??= MediaSelectionOptions();
+    final int? imageQuality = options.imageAdjustmentOptions.quality;
+    if (imageQuality != null && (imageQuality < 0 || imageQuality > 100)) {
+      throw ArgumentError.value(imageQuality, 'imageQuality', 'must be between 0 and 100');
+    }
+
+    final double? maxImageWidth = options.imageAdjustmentOptions.maxWidth;
+    if (maxImageWidth != null && maxImageWidth < 0) {
+      throw ArgumentError.value(maxImageWidth, 'maxImageWidth', 'cannot be negative');
+    }
+
+    final double? maxImageHeight = options.imageAdjustmentOptions.maxHeight;
+    if (maxImageHeight != null && maxImageHeight < 0) {
+      throw ArgumentError.value(maxImageHeight, 'maxImageHeight', 'cannot be negative');
+    }
+
+    return _channel.invokeMethod<List<dynamic>?>(
+      'pickMedia',
+      <String, dynamic>{
+        'allowMultiple': options.allowMultiple,
+        'maxWidth': options.imageAdjustmentOptions.maxWidth,
+        'maxHeight': options.imageAdjustmentOptions.maxHeight,
+        'imageQuality': options.imageAdjustmentOptions.quality,
+        'types': options.types.map(serializeMediaSelectionType).toList(),
+      },
+    );
+  }
+
   Future<String?> _getImagePath({
     required ImageSource source,
     double? maxWidth,
@@ -278,5 +309,17 @@ class ImagePickerAndroid extends ImagePickerPlatform {
       type: retrieveType,
       files: pickedFileList,
     );
+  }
+
+  @override
+  Future<List<XFile>> getMedia({
+    MediaSelectionOptions? options,
+  }) async {
+    final List<dynamic>? paths = await _pickMediaAsPath(options: options);
+    if (paths == null) {
+      return <XFile>[];
+    }
+
+    return paths.map((dynamic path) => XFile(path as String)).toList();
   }
 }
