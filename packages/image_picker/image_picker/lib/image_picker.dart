@@ -15,6 +15,7 @@ export 'package:image_picker_platform_interface/image_picker_platform_interface.
         LostData,
         LostDataResponse,
         MediaSelectionOptions,
+        ImageAdjustmentOptions,
         PickedFile,
         XFile,
         RetrieveType;
